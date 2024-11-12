@@ -22,7 +22,7 @@ class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/dashboard/ajouterproduits', name: 'app_admin_dashboard_ajouter_produits')]
+    #[Route('/dashboard/ajouterproduits', name: 'app_admin_dashboard_ajouter_produits')]
     public function ajouterProduits(Request $request, EntityManagerInterface $entityManager): Response
     {
         // Création d'une nouvelle instance de l'entité Produit
@@ -60,7 +60,7 @@ class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/dashboard/ajoutercategories', name: 'app_admin_dashboard_ajouter_categories')]
+    #[Route('/dashboard/ajoutercategories', name: 'app_admin_dashboard_ajouter_categories')]
     public function ajouterCategorie(Request $request, EntityManagerInterface $entityManager): Response
     {
         // Création d'une nouvelle instance de l'entité Produit
