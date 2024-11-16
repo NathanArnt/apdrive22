@@ -19,11 +19,7 @@ class ProduitsType extends AbstractType
             ->add('libelle')
             ->add('prix')
             ->add('quantite')
-            ->add('lesDetailsCommandes', EntityType::class, [
-                'class' => DetailsCommandes::class,
-                'choice_label' => 'id',
-                'multiple' => true,
-            ])
+            ->add('description')
             ->add('leStock', EntityType::class, [
                 'class' => Stock::class,
                 'choice_label' => 'quantite',

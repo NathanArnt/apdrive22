@@ -26,7 +26,7 @@ class DetailsCommandes
      */
     #[ORM\ManyToMany(targetEntity: Produits::class, inversedBy: 'lesDetailsCommandes')]
     private Collection $lesProduits;
-
+    
     public function __construct()
     {
         $this->lesProduits = new ArrayCollection();
@@ -45,7 +45,6 @@ class DetailsCommandes
     public function setQuantite(int $quantite): static
     {
         $this->quantite = $quantite;
-
         return $this;
     }
 
@@ -79,11 +78,19 @@ class DetailsCommandes
         return $this->lesProduits;
     }
 
-    public function addLesProduit(Produits $lesProduit): static
+    /**
+     * Ajoute un produit à la commande
+     * Si le produit existe déjà, on met à jour la quantité
+     */
+    public function ajouterProduit(Produits $produit): self
     {
-        if (!$this->lesProduits->contains($lesProduit)) {
-            $this->lesProduits->add($lesProduit);
+        // Si le produit n'est pas déjà dans la commande, on l'ajoute
+        if (!$this->lesProduits->contains($produit)) {
+            $this->lesProduits->add($produit);
         }
+
+        // Vous pouvez ici gérer la quantité si vous en avez besoin (par exemple, augmenter la quantité d'un produit si il est déjà dans le panier)
+        $this->quantite += 1; // exemple : chaque produit ajouté à la commande augmente la quantité
 
         return $this;
     }
@@ -93,5 +100,16 @@ class DetailsCommandes
         $this->lesProduits->removeElement($lesProduit);
 
         return $this;
+    }
+
+    public function calculerTotalPanier(): float
+    {
+        $total = 0;
+
+        foreach ($this->lesProduits as $produit) {
+            $total += $produit->getPrix(); // Calcule le total en fonction des prix des produits
+        }
+
+        return $total;
     }
 }

@@ -6,6 +6,7 @@ use App\Entity\Categories;
 use App\Form\ProduitsType;
 use App\Entity\Produits;
 use App\Form\CategoriesType;
+use App\Repository\ProduitsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,12 +18,17 @@ class AdminController extends AbstractController
     #[Route('/admin/dashboard', name: 'app_admin')]
     public function index(): Response
     {
+        $admin = ["ROLE_ADMIN","ROLE_CLIENT","ROLE_USER"];         
+        $client = ["ROLE_CLIENT","ROLE_USER"];
+        $user = [];
+
+
         return $this->render('admin/index.html.twig', [
             'controller_name' => 'AdminController',
         ]);
     }
 
-    #[Route('/dashboard/ajouterproduits', name: 'app_admin_dashboard_ajouter_produits')]
+    #[Route('/admin/dashboard/ajouterproduits', name: 'app_admin_dashboard_ajouter_produits')]
     public function ajouterProduits(Request $request, EntityManagerInterface $entityManager): Response
     {
         // Création d'une nouvelle instance de l'entité Produit
@@ -55,7 +61,7 @@ class AdminController extends AbstractController
     
 
         // Affichage du formulaire dans la vue Twig
-        return $this->render('admin/produits.html.twig', [
+        return $this->render('admin/ajouterProduits.html.twig', [
             'produitsForm' => $form->createView(),
         ]);
     }
@@ -95,6 +101,14 @@ class AdminController extends AbstractController
         // Affichage du formulaire dans la vue Twig
         return $this->render('admin/categories.html.twig', [
             'categoriesForm' => $form->createView(),
+        ]);
+    }
+    #[Route('/admin/dashboard/voirproduits', name: 'app_admin_voir_produits')]
+    public function voirProduits(ProduitsRepository $produitsRepository): Response
+    {
+
+        return $this->render('admin/voirProduits.html.twig', [
+            'controller_name' => 'AdminController',
         ]);
     }
 }
