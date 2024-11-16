@@ -36,6 +36,9 @@ class Produits
     #[ORM\OneToOne(inversedBy: 'LeProduit', cascade: ['persist', 'remove'])]
     private ?Emplacements $leEmplacement = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $description = null;
+
     public function __construct()
     {
         $this->lesDetailsCommandes = new ArrayCollection();
@@ -129,6 +132,18 @@ class Produits
     public function setLeEmplacement(?Emplacements $leEmplacement): static
     {
         $this->leEmplacement = $leEmplacement;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }

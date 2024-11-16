@@ -5,17 +5,146 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
+        <title>{% block title %}DantecDrive{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     </head>
+    <style>
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+    .navHome-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        max-width: 1200px;
+        margin: auto;
+    }
+    .navHome-container h1{
+        color: #ee0653;
+    }
+    .navHome-container button{
+        border: none;
+        background: none;
+        transform: scale(1);
+        transition: 0.3s ease;
+    }
+    .navHome-container button:hover{
+        transform: scale(1.3);
+    }
+    .navHome-container .links {
+        display: flex;
+        color: black;
+    }
+    .navHome-container .links a {
+        position: relative;
+        margin: 20px ; 
+        cursor: pointer;
+        color: black;
+        font-size: 1.6rem;
+        text-decoration: none;
+    }
+    .navHome-container .panier a {
+        color: black;
+        font-size: 1.6rem;
+    }
+    .navHome-container .links a::before {
+        content: "";
+        position: absolute;
+        background-color: #ee0653;
+        width: 0%;
+        height: 2px;
+        left: 0;
+        bottom: -10px;
+        transition: 0.3s ease;
+        border-radius: 50%;
+    }
+    .navHome-container .links a:hover::before {
+        width: 100%;
+    }
+    .card-body .card-link-prix {
+        text-decoration: none;
+        padding-right: 30px;
+        color: black;
+        font-size: 1.5rem;
+    }
+    .products-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* Limite à trois colonnes */
+        gap: 10px; /* Espace entre les cartes */
+        max-width: 1200px;
+        margin: 40px auto;
+    }
+    .products-container .card {
+        font-size: 70%;
+        max-width: 300px;
+        max-height: 300px;
+    }
+    .products-container .card .card-title {
+        font-size: 1.5rem;
+    }
+    .products-container .card .card-link-prix {
+        color: #ee0653;
+        cursor: text;
+    }
+    .products-container .card .card-link {
+        border-radius: 50%;
+        border: none;
+        width: 30px;
+        height: 30px;
+        background-color: #ee0653;
+    }
+    .products-container .card .card-link i{
+        transform: scale(1.5);
+    }
+    
+    </style>
     <body>
-        {{ encore_entry_script_tags('app')}}
-        <div id='app'></div>
-        <button>
-            <a href="{{ path('app_login') }}"><i class="fa-solid fa-user"></i></a>
-        </button>
+        <div class='homePage-container'>
+            <div class='navBar'>
+                <div class='navHome-container'>
+                    <h1>DantecDrive</h1>
+                    <div class='links'>
+                        <a href="{{ path('app_home') }}">Produits</a>
+                        <a href="{{ path('app_login') }}">Promotions</a>
+                        <a href="{{ path('app_login') }}">Drive</a>
+                    </div>
+                    <button>
+                        <a href="{{ path('app_login') }}"><i class="fa-solid fa-user"></i></a>
+                    </button>
+                    <div class='panier'>
+                        <a>Panier</a>
+                        <p>{{ totalPanier  }}</p>
+                    </div>
+                </div>
+            </div> 
+            <div class='products-container'>
+            {% for produit in produits %}
+                <div class="card" style="width: 18rem;">
+                    <img class="card-img-top" src="..." alt="Card image {{ produit.libelle }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ produit.libelle }}</h5>
+                        <a href="#" class="card-link-prix">{{ produit.prix }} €</a>
+                        <p class="card-text">{{ produit.description }}</p>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            <button type="submit" name="produit_id" value="{{ produit.id }}" class="card-link">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucun produit disponible.</p>
+            {% endfor %}
+            </div>
+        </div>
     </body>
 </html>
 
 {% endblock %}
+

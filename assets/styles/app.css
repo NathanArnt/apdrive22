@@ -1,16 +1,1 @@
-body {
-    background-color: #eeeeee;
-}
-.navHome-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-}
-.navHome-container ul {
-    display: flex;
-}
-.navHome-container li{
-    margin: 15px ;
-    cursor: pointer;
-    list-style: none;
-}
+
