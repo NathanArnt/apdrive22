@@ -1,11 +1,8 @@
 <?php
 
-// src/Controller/HomeController.php
-
 namespace App\Controller;
 
 use App\Repository\CommandesRepository;
-use App\Repository\DetailsCommandesRepository;
 use App\Repository\ProduitsRepository;
 use App\Repository\StatutRepository;
 use App\Entity\Commandes;
@@ -22,7 +19,6 @@ class HomeController extends AbstractController
     public function index(
         ProduitsRepository $produitsRepository,
         CommandesRepository $commandesRepository,
-        DetailsCommandesRepository $detailsCommandesRepository,
         StatutRepository $statutRepository,
         EntityManagerInterface $entityManager,
         Request $request
@@ -43,23 +39,31 @@ class HomeController extends AbstractController
             throw $this->createNotFoundException('Aucun produit trouvé');
         }
 
-        // Récupérer les statuts "active" et "inactive"
+        // Récupérer le statut "active"
         $statutActive = $statutRepository->findOneBy(['libelle' => 'active']);
-        $statutInactive = $statutRepository->findOneBy(['libelle' => 'inactive']);
 
         // Vérifier si la commande en cours existe déjà
         $commandeEnCours = $commandesRepository->findOneBy([
             'leUser' => $user,
-            'leStatut' => $statutActive // Recherche de la commande avec statut "active"
+            'leStatut' => $statutActive
         ]);
 
         // Si aucune commande en cours n'est trouvée, en créer une nouvelle
         if (!$commandeEnCours) {
             $commandeEnCours = new Commandes();
             $commandeEnCours->setLeUser($user);
-            $commandeEnCours->setLeStatut($statutActive); // Attribuer le statut "active"
+            $commandeEnCours->setLeStatut($statutActive);
+
+            // Créer également un détail de commande pour cette commande
+            $detailCommande = new DetailsCommandes();
+            $detailCommande->setLaCommande($commandeEnCours);
+
             $entityManager->persist($commandeEnCours);
+            $entityManager->persist($detailCommande);
             $entityManager->flush();
+        } else {
+            // Récupérer le détail de commande existant
+            $detailCommande = $commandeEnCours->getLeDetailCommande();
         }
 
         // Si un produit est envoyé via le formulaire, l'ajouter à la commande
@@ -68,33 +72,22 @@ class HomeController extends AbstractController
             $produit = $produitsRepository->find($produitId);
 
             if ($produit) {
-                // Ajouter le produit à la commande (assurez-vous que la méthode est correcte)
-                $detailCommande = $commandeEnCours->getLeDetailCommande();
+                // Ajouter ou mettre à jour la quantité du produit dans le détail de commande
+                $detailCommande->ajouterProduit($produit);
 
-                // Si le détail de la commande n'existe pas, en créer un nouveau
-                if (!$detailCommande) {
-                    $detailCommande = new DetailsCommandes();
-                    $commandeEnCours->setLeDetailCommande($detailCommande);
-                    $entityManager->persist($detailCommande);
-                }
-
-                // Ajouter le produit dans le détail de la commande
-                $detailCommande->ajouterProduit($produit);  // Assurez-vous que la méthode 'ajouterProduit' existe
-                $entityManager->flush();  // Enregistrer les changements
+                // Sauvegarder les changements
+                $entityManager->flush();
             }
         }
 
         // Calculer le total du panier
-        $totalPanier = 0;
-        if ($commandeEnCours && $commandeEnCours->getLeDetailCommande()) {
-            $totalPanier = $commandeEnCours->getLeDetailCommande()->calculerTotalPanier();
-        }
+        $totalPanier = $detailCommande ? $detailCommande->calculerTotalPanier() : 0;
 
         // Passer la commande et les produits au template
         return $this->render('home/index.html.twig', [
             'produits' => $produits,
             'totalPanier' => $totalPanier,
-            'commandeEnCours' => $commandeEnCours,  // Passer les produits du panier
+            'commandeEnCours' => $commandeEnCours,
         ]);
     }
 }

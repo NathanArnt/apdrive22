@@ -26,10 +26,13 @@
     .navHome-container h1{
         color: #ee0653;
     }
+    .navHome-container button a {
+        color: #ee0653;
+        font-size: 1.5rem;
+    }
     .navHome-container button{
         border: none;
         background: none;
-        transform: scale(1);
         transition: 0.3s ease;
     }
     .navHome-container button:hover{
@@ -47,10 +50,6 @@
         font-size: 1.6rem;
         text-decoration: none;
     }
-    .navHome-container .panier a {
-        color: black;
-        font-size: 1.6rem;
-    }
     .navHome-container .links a::before {
         content: "";
         position: absolute;
@@ -64,6 +63,16 @@
     }
     .navHome-container .links a:hover::before {
         width: 100%;
+    }
+    .navHome-container .panier {
+        background-color: #ee0653;
+        padding: 0 30px 0 30px;
+        color: black;
+        font-size: 1.6rem;
+    }
+    .navHome-container .panier span {
+        color: black;
+        margin-right: 30px;
     }
     .card-body .card-link-prix {
         text-decoration: none;
@@ -115,9 +124,9 @@
                     <button>
                         <a href="{{ path('app_login') }}"><i class="fa-solid fa-user"></i></a>
                     </button>
-                    <div class='panier'>
-                        <a>Panier</a>
-                        <p>{{ totalPanier  }}</p>
+                    <div class="panier">
+                        <span>Panier : </span>
+                        <a>{{ totalPanier  }} €</a>
                     </div>
                 </div>
             </div> 

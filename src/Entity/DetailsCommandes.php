@@ -16,7 +16,7 @@ class DetailsCommandes
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?int $quantite = null;
+    private ?int $quantite = 0;
 
     #[ORM\OneToOne(mappedBy: 'leDetailCommande', cascade: ['persist', 'remove'])]
     private ?Commandes $laCommande = null;
@@ -26,7 +26,7 @@ class DetailsCommandes
      */
     #[ORM\ManyToMany(targetEntity: Produits::class, inversedBy: 'lesDetailsCommandes')]
     private Collection $lesProduits;
-    
+
     public function __construct()
     {
         $this->lesProduits = new ArrayCollection();
@@ -42,7 +42,7 @@ class DetailsCommandes
         return $this->quantite;
     }
 
-    public function setQuantite(int $quantite): static
+    public function setQuantite(int $quantite): self
     {
         $this->quantite = $quantite;
         return $this;
@@ -53,7 +53,7 @@ class DetailsCommandes
         return $this->laCommande;
     }
 
-    public function setLaCommande(?Commandes $laCommande): static
+    public function setLaCommande(?Commandes $laCommande): self
     {
         // unset the owning side of the relation if necessary
         if ($laCommande === null && $this->laCommande !== null) {
@@ -78,36 +78,49 @@ class DetailsCommandes
         return $this->lesProduits;
     }
 
-    /**
-     * Ajoute un produit à la commande
-     * Si le produit existe déjà, on met à jour la quantité
-     */
-    public function ajouterProduit(Produits $produit): self
+    public function addProduit(Produits $produit): self
     {
-        // Si le produit n'est pas déjà dans la commande, on l'ajoute
         if (!$this->lesProduits->contains($produit)) {
             $this->lesProduits->add($produit);
         }
 
-        // Vous pouvez ici gérer la quantité si vous en avez besoin (par exemple, augmenter la quantité d'un produit si il est déjà dans le panier)
-        $this->quantite += 1; // exemple : chaque produit ajouté à la commande augmente la quantité
-
         return $this;
     }
 
-    public function removeLesProduit(Produits $lesProduit): static
+    public function removeProduit(Produits $produit): self
     {
-        $this->lesProduits->removeElement($lesProduit);
+        $this->lesProduits->removeElement($produit);
 
         return $this;
     }
 
+    /**
+     * Ajoute un produit ou incrémente la quantité si le produit existe déjà
+     */
+    public function ajouterProduit(Produits $produit): self
+    {
+        if ($this->lesProduits->contains($produit)) {
+            // Si le produit existe déjà, incrémenter la quantité
+            $this->quantite++;
+        } else {
+            // Si le produit n'existe pas encore, l'ajouter avec une quantité initiale
+            $this->addProduit($produit);
+            $this->quantite = 1;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Calcule le total du panier en fonction des produits et quantités
+     */
     public function calculerTotalPanier(): float
     {
         $total = 0;
 
+        // Calcul du total en multipliant le prix de chaque produit par sa quantité
         foreach ($this->lesProduits as $produit) {
-            $total += $produit->getPrix(); // Calcule le total en fonction des prix des produits
+            $total += $produit->getPrix() * $this->quantite;
         }
 
         return $total;
