@@ -24,12 +24,6 @@ class Produits
     #[ORM\Column]
     private ?int $quantite = null;
 
-    /**
-     * @var Collection<int, DetailsCommandes>
-     */
-    #[ORM\ManyToMany(targetEntity: DetailsCommandes::class, mappedBy: 'lesProduits')]
-    private Collection $lesDetailsCommandes;
-
     #[ORM\OneToOne(inversedBy: 'LeProduit', cascade: ['persist', 'remove'])]
     private ?Stock $leStock = null;
 
@@ -38,6 +32,15 @@ class Produits
 
     #[ORM\Column(length: 255)]
     private ?string $description = null;
+
+    /**
+     * @var Collection<int, DetailsCommandes>
+     */
+    #[ORM\OneToMany(targetEntity: DetailsCommandes::class, mappedBy: 'leProduit')]
+    private Collection $lesDetailsCommandes;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $image = null;
 
     public function __construct()
     {
@@ -85,33 +88,6 @@ class Produits
         return $this;
     }
 
-    /**
-     * @return Collection<int, DetailsCommandes>
-     */
-    public function getLesDetailsCommandes(): Collection
-    {
-        return $this->lesDetailsCommandes;
-    }
-
-    public function addLesDetailsCommande(DetailsCommandes $lesDetailsCommande): static
-    {
-        if (!$this->lesDetailsCommandes->contains($lesDetailsCommande)) {
-            $this->lesDetailsCommandes->add($lesDetailsCommande);
-            $lesDetailsCommande->addLesProduit($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLesDetailsCommande(DetailsCommandes $lesDetailsCommande): static
-    {
-        if ($this->lesDetailsCommandes->removeElement($lesDetailsCommande)) {
-            $lesDetailsCommande->removeLesProduit($this);
-        }
-
-        return $this;
-    }
-
     public function getLeStock(): ?Stock
     {
         return $this->leStock;
@@ -144,6 +120,48 @@ class Produits
     public function setDescription(string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DetailsCommandes>
+     */
+    public function getLesDetailsCommandes(): Collection
+    {
+        return $this->lesDetailsCommandes;
+    }
+
+    public function addLesDetailsCommande(DetailsCommandes $lesDetailsCommande): static
+    {
+        if (!$this->lesDetailsCommandes->contains($lesDetailsCommande)) {
+            $this->lesDetailsCommandes->add($lesDetailsCommande);
+            $lesDetailsCommande->setLeProduit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLesDetailsCommande(DetailsCommandes $lesDetailsCommande): static
+    {
+        if ($this->lesDetailsCommandes->removeElement($lesDetailsCommande)) {
+            // set the owning side to null (unless already changed)
+            if ($lesDetailsCommande->getLeProduit() === $this) {
+                $lesDetailsCommande->setLeProduit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
 
         return $this;
     }

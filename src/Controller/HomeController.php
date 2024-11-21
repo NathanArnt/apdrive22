@@ -2,11 +2,10 @@
 
 namespace App\Controller;
 
-use App\Repository\CommandesRepository;
 use App\Repository\ProduitsRepository;
+use App\Repository\CommandesRepository;
 use App\Repository\StatutRepository;
 use App\Entity\Commandes;
-use App\Entity\DetailsCommandes;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,77 +16,99 @@ class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home', methods: ['GET', 'POST'])]
     public function index(
+        Request $request,
         ProduitsRepository $produitsRepository,
         CommandesRepository $commandesRepository,
         StatutRepository $statutRepository,
-        EntityManagerInterface $entityManager,
-        Request $request
+        EntityManagerInterface $entityManager
     ): Response {
-        // Récupérer l'utilisateur connecté
-        $user = $this->getUser();
-        
-        // Vérifiez que l'utilisateur est connecté
-        if (!$user) {
-            return $this->redirectToRoute('app_login'); // Rediriger si l'utilisateur n'est pas connecté
-        }
+        $user = $this->getUser(); // Récupérer l'utilisateur connecté
+        $commande = null;
+        $totalPanier = 0;
 
-        // Récupérer les produits
-        $produits = $produitsRepository->findAll();
-        
-        // Vérifiez que les produits existent
-        if (!$produits) {
-            throw $this->createNotFoundException('Aucun produit trouvé');
-        }
+        if ($user) {
+            // Récupérer ou créer la commande en cours pour l'utilisateur
+            $commande = $commandesRepository->findOneBy(['leUser' => $user]);
 
-        // Récupérer le statut "active"
-        $statutActive = $statutRepository->findOneBy(['libelle' => 'active']);
-
-        // Vérifier si la commande en cours existe déjà
-        $commandeEnCours = $commandesRepository->findOneBy([
-            'leUser' => $user,
-            'leStatut' => $statutActive
-        ]);
-
-        // Si aucune commande en cours n'est trouvée, en créer une nouvelle
-        if (!$commandeEnCours) {
-            $commandeEnCours = new Commandes();
-            $commandeEnCours->setLeUser($user);
-            $commandeEnCours->setLeStatut($statutActive);
-
-            // Créer également un détail de commande pour cette commande
-            $detailCommande = new DetailsCommandes();
-            $detailCommande->setLaCommande($commandeEnCours);
-
-            $entityManager->persist($commandeEnCours);
-            $entityManager->persist($detailCommande);
-            $entityManager->flush();
-        } else {
-            // Récupérer le détail de commande existant
-            $detailCommande = $commandeEnCours->getLeDetailCommande();
-        }
-
-        // Si un produit est envoyé via le formulaire, l'ajouter à la commande
-        if ($request->isMethod('POST')) {
-            $produitId = $request->get('produit_id');
-            $produit = $produitsRepository->find($produitId);
-
-            if ($produit) {
-                // Ajouter ou mettre à jour la quantité du produit dans le détail de commande
-                $detailCommande->ajouterProduit($produit);
-
-                // Sauvegarder les changements
+            if (!$commande) {
+                $commande = new Commandes();
+                $commande->setLeUser($user);
+                $commande->setLeStatut($statutRepository->find(1)); // Statut "en cours"
+                $entityManager->persist($commande);
                 $entityManager->flush();
+            }
+
+            // Calculer le total du panier
+            $totalPanier = $commande->calculerTotal();
+        }
+
+        // Gestion de l'ajout de produit au panier
+        if ($request->isMethod('POST') && $request->request->get('produit_id')) {
+            $produitId = $request->request->get('produit_id');
+            if ($produitId && $commande) {
+                $produit = $produitsRepository->find($produitId);
+                if ($produit) {
+                    // Ajouter le produit au panier
+                    $commande->ajouterProduit($produit, $entityManager);
+
+                    // Synchroniser les modifications
+                    $entityManager->flush();
+
+                    // Recalculer le total après ajout
+                    $totalPanier = $commande->calculerTotal();
+
+                    // Récupérer une version actualisée de la commande
+                    $commande = $commandesRepository->findOneBy(['leUser' => $user]);
+                }
             }
         }
 
-        // Calculer le total du panier
-        $totalPanier = $detailCommande ? $detailCommande->calculerTotalPanier() : 0;
+        // Gestion de la décrémentation de la quantité d'un produit dans le panier
+        if ($request->isMethod('POST') && $request->request->get('decrement-id')) {
+            $produitId = $request->request->get('decrement-id');
+            if ($produitId && $commande) {
+                $produit = $produitsRepository->find($produitId);
+                if ($produit) {
+                    // Retirer le produit du panier
+                    $commande->retirerProduit($produit, $entityManager);
 
-        // Passer la commande et les produits au template
+                    // Synchroniser les modifications
+                    $entityManager->flush();
+
+                    // Recalculer le total après modification
+                    $totalPanier = $commande->calculerTotal();
+                }
+            }
+        }
+
+        // Gestion de la suppression du panier
+        if ($request->isMethod('POST') && $request->request->get('supprimer_panier')) {
+            if ($commande) {
+                // Supprimer les détails de la commande
+                foreach ($commande->getLesDetailsCommandes() as $detail) {
+                    $entityManager->remove($detail);
+                }
+
+                // Supprimer la commande elle-même
+                $entityManager->remove($commande);
+                $entityManager->flush();
+
+                // Réinitialiser le total après suppression
+                $totalPanier = 0;
+            }
+
+            // Rediriger vers la page d'accueil après suppression du panier
+            return $this->redirectToRoute('app_home');
+        }
+
+        // Récupérer tous les produits pour affichage
+        $produits = $produitsRepository->findAll();
+
+        // Transmettre les données à Twig
         return $this->render('home/index.html.twig', [
             'produits' => $produits,
             'totalPanier' => $totalPanier,
-            'commandeEnCours' => $commandeEnCours,
+            'commande' => $commande, // Passer la commande pour affichage des détails
         ]);
     }
 }
