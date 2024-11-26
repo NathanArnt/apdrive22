@@ -9,9 +9,11 @@ use App\Form\CategoriesType;
 use App\Repository\ProduitsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 class AdminController extends AbstractController
 {
@@ -29,7 +31,7 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/dashboard/ajouterproduits', name: 'app_admin_dashboard_ajouter_produits')]
-    public function ajouterProduits(Request $request, EntityManagerInterface $entityManager): Response
+    public function ajouterProduits(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         // Création d'une nouvelle instance de l'entité Produit
         $produit = new Produits();
@@ -44,6 +46,20 @@ class AdminController extends AbstractController
         if ($form->isSubmitted()) {
             if ($form->isValid()) {
                 // Sauvegarde du produit
+                $image = $form->get('image')->getData();
+                if ($image) {
+                    $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFileName = $slugger->slug($originalName);
+                    $newNameFile = $safeFileName.'-'.uniqid().'.'.$image->guessExtension();
+
+                    try {
+                        $image->move(
+                            $this->getParameter('image_dir'),
+                            $newNameFile
+                        );
+                    }catch (FileException $exception){}
+                    $produit->setImage($newNameFile);
+                }
                 $produit = $form->getData();
                 $entityManager->persist($produit);
                 $entityManager->flush();
