@@ -7,7 +7,6 @@
         <div>Produits</div>
         <div>Prix</div>
         <div>Quantité</div>
-       
       </div>
       <div class="table-row" v-for="produit in produits" :key="produit.id">
         <div>{{ produit.id }}</div>
