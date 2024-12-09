@@ -17,7 +17,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class AdminController extends AbstractController
 {
-    #[Route('/admin/dashboard', name: 'app_admin')]
+    #[Route('/admin', name: 'app_admin')]
     public function index(): Response
     {
         $admin = ["ROLE_ADMIN","ROLE_CLIENT","ROLE_USER"];         
@@ -30,7 +30,7 @@ class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/dashboard/ajouterproduits', name: 'app_admin_dashboard_ajouter_produits')]
+    #[Route('/admin/ajouterproduits', name: 'app_admin_ajouter_produits')]
     public function ajouterProduits(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         // Création d'une nouvelle instance de l'entité Produit
@@ -68,7 +68,7 @@ class AdminController extends AbstractController
                 $this->addFlash('success', 'Le produit a été ajouté avec succès.');
     
                 // Redirection
-                return $this->redirectToRoute('app_admin_dashboard_ajouter_produits');
+                return $this->redirectToRoute('app_admin_ajouter_produits');
             } else {
                 // Message flash si le formulaire est soumis mais invalide
                 $this->addFlash('error', 'Le formulaire contient des erreurs. Veuillez les corriger.');
@@ -82,7 +82,7 @@ class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/dashboard/ajoutercategories', name: 'app_admin_dashboard_ajouter_categories')]
+    #[Route('/admin/ajoutercategories', name: 'app_admin_ajouter_categories')]
     public function ajouterCategorie(Request $request, EntityManagerInterface $entityManager): Response
     {
         // Création d'une nouvelle instance de l'entité Produit
@@ -117,14 +117,6 @@ class AdminController extends AbstractController
         // Affichage du formulaire dans la vue Twig
         return $this->render('admin/categories.html.twig', [
             'categoriesForm' => $form->createView(),
-        ]);
-    }
-    #[Route('/admin/dashboard/voirproduits', name: 'app_admin_voir_produits')]
-    public function voirProduits(ProduitsRepository $produitsRepository): Response
-    {
-
-        return $this->render('admin/voirProduits.html.twig', [
-            'controller_name' => 'AdminController',
         ]);
     }
 }
