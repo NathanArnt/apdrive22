@@ -20,7 +20,7 @@ class HomeController extends AbstractController
         return $this->render('home/index.html.twig', [
         ]);
     }
-    #[Route('/panier', name: 'app_panier')]
+    #[Route('/client/panier', name: 'app_panier')]
     public function validerPanier(){
        
         return $this->render('home/panier.html.twig', [

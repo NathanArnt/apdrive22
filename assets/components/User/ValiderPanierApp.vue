@@ -39,7 +39,7 @@
       <div class="buttonPanier" v-if="detailscommandes.length">
         <button id="suppPanier" @click="clearPanier">Supprimer le panier</button>
         <span></span>
-        <button id="validerPanier" @click="validerPanier">Payer le panier</button>
+        <button id="validerPanier" @click="updateStatutCommande">Payer le panier</button>
       </div>
     </div>
   </div>
@@ -56,6 +56,29 @@ export default {
     const detailscommandes = ref([]); // Détails des commandes
     const totalPanier = ref(0);
 
+    const updateStatutCommande = async () => {
+  try {
+    const commandeId = detailscommandes.value[0]?.laCommande?.id; /* récupérer l'ID de la commande utilisateur */;
+    const response = await fetch(`/api/commandes/update/${commandeId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(`Erreur API : ${errorData.error || "Erreur inconnue"}`);
+      return;
+    }
+
+    alert("Commande validée avec succès !");
+    detailscommandes.value = []; // Réinitialiser le panier côté front
+  } catch (error) {
+    console.error("Erreur :", error);
+    alert("Une erreur s'est produite lors de la commande.");
+  }
+};
+
+    
      // Vider le panier
      const clearPanier = async () => {
       try {
@@ -128,6 +151,7 @@ export default {
       decrementProduit,
       totalPanier,
       clearPanier,
+      updateStatutCommande,
     };
   },
 };

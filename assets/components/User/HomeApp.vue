@@ -26,12 +26,14 @@
             </div>
           </div>
         </div>
-        <button id="suppPanier" class="btn btn-danger" v-if="detailscommandes.length" @click="clearPanier">
-          Supprimer le panier
-        </button>
-        <button id="validerPanier" class="btn btn-success" v-if="detailscommandes.length">
-          <a href="/panier">Recapitulatif</a>
-        </button>
+        <div class="btnPanier">
+          <button class="suppPanier" v-if="detailscommandes.length" @click="clearPanier">
+            Vider
+          </button>
+          <button class="validerPanier" v-if="detailscommandes.length">
+            <a href="/client/panier">Commander</a>
+          </button>
+        </div>
       </div>
     </div>
     <div class="products">
@@ -175,7 +177,7 @@ export default {
   }
   .homePage-panier .panier {
     min-height: 300px;
-    max-width: 200px;
+    min-width: 220px;
     padding: 10px 20px;
     background-color: #ee0653;
     color: black;
@@ -184,8 +186,39 @@ export default {
     flex-direction: column;  /* Aligner les éléments verticalement *//* Fixer la hauteur en fonction de la fenêtre moins la hauteur de la barre de navigation */
     overflow-y: auto;
   }
-  .homePage-panier .panier button {
+  .homePage-panier .panier .btnPanier {
+    margin: 30px 0 0 0;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column
+  }
+  .homePage-panier .panier .btnPanier button {
+    background: white;
+    border: 2px solid black;
+    width: 150px;
+    height: 45px;
+    color: #ee0653;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    transition: 0.3s ease;
+  }
+  .homePage-panier .panier .btnPanier button:hover {
+    transform: scale(1.1)
+  }
+  .homePage-panier .panier .btnPanier .validerPanier{
+    margin-top: 15px;
+  }
+  .homePage-panier .panier .btnPanier button a{
     text-decoration: none;
+    color: #ee0653;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 3px;
   }
   .homePage-panier .panier .panier-button {
     position: relative;
@@ -231,6 +264,8 @@ export default {
 
   /* Panier et détails sous le total */
   .panier .total {
+    display: flex;
+    justify-content: space-between;
     font-weight: bold;
     color: white;
     margin-bottom: 15px;  /* Espace entre le total et les détails */

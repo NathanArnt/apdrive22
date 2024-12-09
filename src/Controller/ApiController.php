@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Utils\Utils;
 use App\Entity\Commandes;
 use App\Entity\DetailsCommandes;
+use App\Entity\Statut;
 use App\Repository\ProduitsRepository;
 use App\Repository\CommandesRepository;
 use App\Repository\StatutRepository;
@@ -124,48 +125,91 @@ class ApiController extends AbstractController
 
         return $this->json(['message' => 'Panier supprimé']);
     }
-    #[Route('/api/commandes', name: 'api_create_commande', methods: ['POST'])]
-    public function createCommande(
-        Request $request,
-        EntityManagerInterface $em,
-        UserRepository $userRepo,
-        StatutRepository $statutRepo
-    ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
+    #[Route('/api/commandes/update/{id}', name: 'app_api_update_commande', methods: ['PUT'])]
+public function updateCommande(
+    $id,
+    CommandesRepository $commandesRepository,
+    StatutRepository $statutRepository,
+    EntityManagerInterface $entityManager
+): JsonResponse {
+    // Récupérer la commande à partir de l'ID
+    $commande = $commandesRepository->find($id);
 
-        // Vérifier si les détails de la commande sont fournis
-        if (!isset($data['details']) || empty($data['details'])) {
-            return new JsonResponse(['error' => 'Aucun détail de commande fourni'], 400);
-        }
-
-        // Créer une nouvelle commande
-        $commande = new Commandes();
-
-        // Associer un utilisateur (remplacez par votre logique utilisateur)
-        $user = $this->getUser(); // Utilisateur connecté
-        if (!$user) {
-            return new JsonResponse(['error' => 'Utilisateur non authentifié'], 401);
-        }
-        $commande->setLeUser($user);
-
-        // Associer un statut initial (par exemple "En cours")
-        $statut = $statutRepo->findOneBy(['nom' => 'En cours']); // Adaptez en fonction de vos statuts
-        $commande->setLeStatut($statut);
-
-        // Associer les détails de commande
-        foreach ($data['details'] as $detailData) {
-            $detail = new DetailsCommandes();
-            $detail->setLeProduit($detailData['leProduit']['id']);
-            $detail->setQuantite($detailData['quantite']);
-            $detail->setLaCommande($commande);
-            $commande->addLesDetailsCommande($detail);
-            $em->persist($detail);
-        }
-
-        // Persister la commande
-        $em->persist($commande);
-        $em->flush();
-
-        return new JsonResponse(['success' => 'Commande créée avec succès'], 201);
+    if (!$commande) {
+        return $this->json(['error' => 'Commande non trouvée'], JsonResponse::HTTP_NOT_FOUND);
     }
+
+    // Vérifier si l'utilisateur est propriétaire de la commande
+    $user = $this->getUser();
+    if ($commande->getLeUser() !== $user) {
+        return $this->json(['error' => 'Accès non autorisé'], JsonResponse::HTTP_FORBIDDEN);
+    }
+
+    // Modifier le statut de la commande
+    $statutValide = $statutRepository->findOneBy(['libelle' => 'valide']);
+    if (!$statutValide) {
+        return $this->json(['error' => 'Statut "valide" introuvable'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    $commande->setLeStatut($statutValide);
+    $entityManager->flush();
+
+    // Réinitialiser les détails du panier (les supprimer de la session utilisateur)
+    foreach ($commande->getLesDetailsCommandes() as $detail) {
+        $entityManager->remove($detail);
+    }
+
+    $entityManager->flush();
+
+    return $this->json(['message' => 'Commande validée et panier réinitialisé.']);
+}
+#[Route('/api/commandes/valider/{id}', name: 'app_api_valider_commande', methods: ['POST'])]
+public function validerCommande(
+    $id,
+    CommandesRepository $commandesRepository,
+    StatutRepository $statutRepository,
+    EntityManagerInterface $entityManager
+): JsonResponse {
+    // Récupérer la commande actuelle
+    $commande = $commandesRepository->find($id);
+
+    if (!$commande) {
+        return $this->json(['error' => 'Commande non trouvée'], JsonResponse::HTTP_NOT_FOUND);
+    }
+
+    // Vérifier si l'utilisateur est propriétaire de la commande
+    $user = $this->getUser();
+    if ($commande->getLeUser() !== $user) {
+        return $this->json(['error' => 'Accès non autorisé'], JsonResponse::HTTP_FORBIDDEN);
+    }
+
+    // Modifier le statut de la commande actuelle à "valide"
+    $statutValide = $statutRepository->findOneBy(['libelle' => 'valide']);
+    if (!$statutValide) {
+        return $this->json(['error' => 'Statut "valide" introuvable'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+    }
+    $commande->setLeStatut($statutValide);
+
+    // Créer une nouvelle commande vide pour l'utilisateur
+    $nouvelleCommande = new Commandes();
+    $nouvelleCommande->setLeUser($user);
+
+    // Associer un statut initial (par exemple "en cours")
+    $statutEnCours = $statutRepository->findOneBy(['libelle' => 'en_cours']);
+    if (!$statutEnCours) {
+        return $this->json(['error' => 'Statut "en_cours" introuvable'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+    }
+    $nouvelleCommande->setLeStatut($statutEnCours);
+
+    // Persister les changements dans la base de données
+    $entityManager->persist($nouvelleCommande);
+    $entityManager->flush();
+
+    return $this->json([
+        'message' => 'Commande validée avec succès',
+        'nouvelleCommandeId' => $nouvelleCommande->getId(),
+    ]);
+}
+
+  
 }
