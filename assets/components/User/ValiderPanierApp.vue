@@ -2,40 +2,53 @@
   <div class="panier-Page">
     <NavbarApp />
     <div class="panier-container">
+      <!-- Titre du panier et total -->
       <div class="title">
         <h1>Votre panier :</h1>
         <h1>{{ totalPanier }}€</h1>
       </div>
+
+      <!-- Liste des détails des commandes -->
       <div class="details-container">
+        <!-- Si le panier contient des éléments -->
         <div v-if="detailscommandes.length">
           <div class="details" v-for="detail in detailscommandes" :key="detail.id">
             <div class="details-row">
+              <!-- Image du produit -->
               <div class="img-produit">
-              <img :src="'/uploads/images/' + detail.leProduit.image" alt="Produit" />
-            </div>
-            <div class="desc-produit">
-              <a class="libelle">{{ detail.leProduit.libelle }}</a>
-              <a>{{ detail.leProduit.description }}</a>
-            </div>
-            <div class="prix-produit">
-              <span>{{ (detail.quantite * detail.leProduit.prix).toFixed(2) }} €</span>
-              <div class="panier-absolute">
-                <button @click="decrementProduit(detail.leProduit.id)">
-                  <i class="fa-solid fa-minus"></i>
-                </button>
-                <a>{{ detail.quantite }}</a>
-                <button @click="incrementProduit(detail.leProduit.id)">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
+                <img :src="'/uploads/images/' + detail.leProduit.image" alt="Produit" />
+              </div>
+              <!-- Description du produit -->
+              <div class="desc-produit">
+                <a class="libelle">{{ detail.leProduit.libelle }}</a>
+                <a>{{ detail.leProduit.description }}</a>
+              </div>
+              <!-- Prix et actions sur le produit -->
+              <div class="prix-produit">
+                <span>{{ (detail.quantite * detail.leProduit.prix).toFixed(2) }} €</span>
+                <div class="panier-absolute">
+                  <!-- Bouton pour décrémenter -->
+                  <button @click="decrementProduit(detail.leProduit.id)">
+                    <i class="fa-solid fa-minus"></i>
+                  </button>
+                  <!-- Quantité -->
+                  <a>{{ detail.quantite }}</a>
+                  <!-- Bouton pour incrémenter -->
+                  <button @click="incrementProduit(detail.leProduit.id)">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <!-- Si le panier est vide -->
+        <div v-else>
+          <p>Votre panier est vide.</p>
+        </div>
       </div>
-      <div v-else>
-        <p>Votre panier est vide.</p>
-      </div>
-    </div>
+
+      <!-- Boutons d'action -->
       <div class="buttonPanier" v-if="detailscommandes.length">
         <button id="suppPanier" @click="clearPanier">Supprimer le panier</button>
         <span></span>
@@ -53,60 +66,65 @@ export default {
   name: "Panier",
   components: { NavbarApp },
   setup() {
-    const detailscommandes = ref([]); // Détails des commandes
-    const totalPanier = ref(0);
+    const detailscommandes = ref([]); // Contient les produits du panier
+    const totalPanier = ref(0); // Total du panier
 
+    // Fonction pour valider la commande
     const updateStatutCommande = async () => {
-  try {
-    const commandeId = detailscommandes.value[0]?.laCommande?.id; /* récupérer l'ID de la commande utilisateur */;
-    const response = await fetch(`/api/commandes/update/${commandeId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-    });
+      try {
+        // Récupérer l'ID de la commande depuis le premier produit du panier
+        const commandeId = detailscommandes.value[0]?.laCommande?.id;
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      alert(`Erreur API : ${errorData.error || "Erreur inconnue"}`);
-      return;
-    }
+        const response = await fetch(`/api/commandes/update/${commandeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+        });
 
-    alert("Commande validée avec succès !");
-    detailscommandes.value = []; // Réinitialiser le panier côté front
-  } catch (error) {
-    console.error("Erreur :", error);
-    alert("Une erreur s'est produite lors de la commande.");
-  }
-};
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(`Erreur API : ${errorData.error || "Erreur inconnue"}`);
+          return;
+        }
 
-    
-     // Vider le panier
-     const clearPanier = async () => {
+        alert("Commande validée avec succès !");
+        detailscommandes.value = []; // Vider le panier localement
+        totalPanier.value = 0; // Réinitialiser le total
+      } catch (error) {
+        console.error("Erreur lors de la validation :", error);
+        alert("Une erreur s'est produite lors de la validation de la commande.");
+      }
+    };
+
+    // Fonction pour vider le panier
+    const clearPanier = async () => {
       try {
         const response = await fetch("/api/panier/clear", {
           method: "POST",
         });
         if (response.ok) {
-          detailscommandes.value = [];
-          totalPanier.value = 0;
+          detailscommandes.value = []; // Vider la liste localement
+          totalPanier.value = 0; // Réinitialiser le total
         }
       } catch (error) {
         console.error("Erreur lors de la suppression du panier :", error);
       }
     };
-     // Calculer le total du panier avec un arrondi à deux décimales
-     const calculerTotalPanier = () => {
+
+    // Fonction pour calculer le total du panier
+    const calculerTotalPanier = () => {
       const total = detailscommandes.value.reduce((total, detail) => {
         return total + detail.quantite * detail.leProduit.prix;
       }, 0);
-      totalPanier.value = parseFloat(total.toFixed(2));
+      totalPanier.value = parseFloat(total.toFixed(2)); // Arrondi à deux décimales
     };
-    // Récupérer les détails du panier
+
+    // Fonction pour récupérer les détails du panier
     const fetchDetailsCommandes = async () => {
       try {
         const response = await fetch("/api/detailscommandes");
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-        detailscommandes.value = await response.json();
-        calculerTotalPanier();
+        detailscommandes.value = await response.json(); // Charger les données
+        calculerTotalPanier(); // Mettre à jour le total
       } catch (error) {
         console.error("Erreur lors du chargement des détails du panier :", error);
       }
@@ -120,7 +138,7 @@ export default {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ produit_id: produitId }),
         });
-        if (response.ok) await fetchDetailsCommandes();
+        if (response.ok) await fetchDetailsCommandes(); // Recharger les données après l'ajout
       } catch (error) {
         console.error("Erreur lors de l'ajout du produit :", error);
       }
@@ -134,22 +152,22 @@ export default {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ produit_id: produitId }),
         });
-        if (response.ok) await fetchDetailsCommandes();
+        if (response.ok) await fetchDetailsCommandes(); // Recharger les données après la suppression
       } catch (error) {
         console.error("Erreur lors de la décrémentation du produit :", error);
       }
     };
 
-    // Initialisation des données au montage du composant
+    // Charger les données au montage
     onMounted(() => {
       fetchDetailsCommandes();
     });
 
     return {
       detailscommandes,
+      totalPanier,
       incrementProduit,
       decrementProduit,
-      totalPanier,
       clearPanier,
       updateStatutCommande,
     };

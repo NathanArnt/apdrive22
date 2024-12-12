@@ -20,7 +20,7 @@ class ProduitsType extends AbstractType
         $builder
             ->add('libelle')
             ->add('prix')
-            ->add('quantite')
+            ->add('stock')
             ->add('description')
             ->add('image', FileType::class, [
                 'label' => 'Image du produit : ',
@@ -38,11 +38,6 @@ class ProduitsType extends AbstractType
                         'mimeTypesMessage' =>'Votre image de produit doit être au format valide (jpg, jpeg, png).',
                     ]),
                 ],
-            ])
-            ->add('leStock', EntityType::class, [
-                'class' => Stock::class,
-                'choice_label' => 'quantite',
-                'required' => true
             ])
             ->add('leEmplacement', EntityType::class, [
                 'class' => Emplacements::class,

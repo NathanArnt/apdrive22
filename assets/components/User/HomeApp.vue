@@ -67,6 +67,7 @@ export default {
     const produits = ref([]);
     const detailscommandes = ref([]);
     const totalPanier = ref(0);
+    const commandes = ref([]);
 
     // Récupération des produits depuis l'API
     const fetchProduits = async () => {
@@ -88,7 +89,15 @@ export default {
         console.error("Erreur lors du chargement des détails du panier :", error);
       }
     };
-
+    // Récupération des détails du panier depuis l'API
+    const fetchCommandes = async () => {
+      try {
+        const response = await fetch("/api/commandes");
+        commandes.value = await response.json();
+        } catch (error) {
+        console.error("Erreur lors du chargement des détails du panier :", error);
+      }
+    };
     // Ajouter un produit au panier
     const incrementProduit = async (produitId) => {
       try {
@@ -147,6 +156,7 @@ export default {
     // Charger les données au montage
     onMounted(() => {
       fetchProduits();
+      fetchCommandes();
       fetchDetailsCommandes();
     });
 
@@ -154,6 +164,7 @@ export default {
       produits,
       detailscommandes,
       totalPanier,
+      commandes,
       incrementProduit,
       decrementProduit,
       clearPanier,

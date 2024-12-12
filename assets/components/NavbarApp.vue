@@ -66,7 +66,7 @@
     left: 0;
     bottom: -10px;
     transition: 0.3s ease;
-    border-radius: 50%;
+    border-radius: 15%;
   }
   .navBar-container .links a:hover::before {
     width: 100%;
