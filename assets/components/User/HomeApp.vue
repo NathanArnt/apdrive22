@@ -33,6 +33,9 @@
           <button class="validerPanier" v-if="detailscommandes.length">
             <a href="/client/panier">Commander</a>
           </button>
+          <button class="validerPanier" v-if="detailscommandes.length">
+            <a href="/api/commandes/parcours/{id}">Chemin</a>
+          </button>
         </div>
       </div>
     </div>

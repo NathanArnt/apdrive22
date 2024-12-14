@@ -12,11 +12,14 @@ use App\Repository\StatutRepository;
 use App\Repository\DetailsCommandesRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Id;
+use phpDocumentor\Reflection\Types\This;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Response;
 
 class ApiController extends AbstractController
 {
@@ -209,6 +212,66 @@ public function validerCommande(
         'message' => 'Commande validée avec succès',
         'nouvelleCommandeId' => $nouvelleCommande->getId(),
     ]);
+}
+
+#[Route('/api/commandes/parcours/{id}', name: 'app_api_parcours_commande', methods: ['GET','POST'])]
+function trouverCheminPlusCourt($id, CommandesRepository $commandesRepository): Response {
+    $commande = $commandesRepository->find($id);
+
+    if (!$commande) {
+        return $this->json(['error' => 'Commande non trouvée'], JsonResponse::HTTP_NOT_FOUND);
+    }
+
+
+    $lesProduits = [];
+
+
+foreach ($commande->getLesDetailsCommandes() as $detailCommande) {
+    $produit = $detailCommande->getLeProduit();
+    $lesProduits[] = [
+        'id' => $produit->getId(),
+        'libelle' => $produit->getLibelle(), 
+        'x' => $produit->getLeEmplacement()->getPosX(), 
+        'y' => $produit->getLeEmplacement()->getPosY(),
+    ];
+}
+
+
+    $depart = ['x' => 0, 'y' => 0];
+    $positionActuelle = $depart;
+    $chemin = [];
+    $produitsRestants = $lesProduits;
+    $distanceTotale = 0;
+
+    while (!empty($produitsRestants)) {
+        $produitLePlusProche = null;
+        $distanceMinimale = PHP_INT_MAX;
+
+        foreach ($produitsRestants as $index => $produit) {
+            $distance = $this->calculerDistance($positionActuelle, $produit);
+            if ($distance < $distanceMinimale) {
+                $distanceMinimale = $distance;
+                $produitLePlusProche = $index;
+            }
+        }
+
+        // Ajouter le produit le plus proche au chemin
+        $chemin[] = $produitsRestants[$produitLePlusProche];
+        $distanceTotale += $distanceMinimale;
+        $positionActuelle = $produitsRestants[$produitLePlusProche];
+
+        // Retirer le produit visité de la liste des produits restants
+        unset($produitsRestants[$produitLePlusProche]);
+    }
+
+    // Retourner au point de départ
+    $distanceTotale += $this->calculerDistance($positionActuelle, $depart);
+
+    return $this->render('/home/cheminCommande.html.twig', ['chemin' => $chemin, 'distanceTotale' => $distanceTotale]);
+}
+
+function calculerDistance($point1, $point2) {
+    return round(sqrt(pow($point2['x'] - $point1['x'], 2) + pow($point2['y'] - $point1['y'], 2)),2);
 }
 
   
