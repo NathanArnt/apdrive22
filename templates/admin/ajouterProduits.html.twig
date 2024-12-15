@@ -45,22 +45,23 @@
                 <div class='rowForm'>
                     {{ form_row(produitsForm.libelle) }}
                 </div>
-
                 <div class='rowForm'>
                     {{ form_row(produitsForm.prix) }}
                 </div>
-
                 <div class='rowForm'>
-                    {{ form_row(produitsForm.quantite) }}
+                    {{ form_row(produitsForm.stock) }}
                 </div>
-                
                 <div class='rowForm'>
                     {{ form_row(produitsForm.description) }}
                 </div>
+                <div class='rowForm'>
+                    {{ form_row(produitsForm.leEmplacement) }}
+                </div>
+                <div class='rowForm'>
+                    {{ form_row(produitsForm.image) }}
+                </div>
                 
-                {# <div class='rowFormLast'>
-                    {{ form_row(produitsForm.laCategorie) }}
-                </div> #}
+                
 
                 <button type="submit" class="btn btn-success w-100 mb-5">Ajouter</button>
 

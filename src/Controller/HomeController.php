@@ -20,6 +20,12 @@ class HomeController extends AbstractController
         return $this->render('home/index.html.twig', [
         ]);
     }
+    #[Route('/login', name: 'app_login')]
+    public function Login(){
+       
+        return $this->render('home/loginuser.html.twig', [
+        ]);
+    }
     #[Route('/client/panier', name: 'app_panier')]
     public function validerPanier(){
        

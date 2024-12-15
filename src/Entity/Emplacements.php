@@ -22,8 +22,8 @@ class Emplacements
     #[ORM\OneToOne(mappedBy: 'leEmplacement', cascade: ['persist', 'remove'])]
     private ?Produits $LeProduit = null;
 
-    #[ORM\ManyToOne(inversedBy: 'lesEmplacements')]
-    private ?Allees $laAllee = null;
+    #[ORM\Column]
+    private ?bool $statut = false;
 
     public function getId(): ?int
     {
@@ -76,14 +76,14 @@ class Emplacements
         return $this;
     }
 
-    public function getLaAllee(): ?Allees
+    public function isStatut(): ?bool
     {
-        return $this->laAllee;
+        return $this->statut;
     }
 
-    public function setLaAllee(?Allees $laAllee): static
+    public function setStatut(bool $statut): static
     {
-        $this->laAllee = $laAllee;
+        $this->statut = $statut;
 
         return $this;
     }
