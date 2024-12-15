@@ -2,8 +2,58 @@
   <div class="homePage-container">
     <NavbarApp />
     <div class="homePage-panier">
-      <div class="commande">
-        <button>Commander</button>
+      <div class="panier">
+        <div class="total">
+          <span><i class="fa-solid fa-cart-shopping"></i> Panier : </span>
+          <a>{{ totalPanier }}€</a>
+        </div>
+        <div class="details" v-for="detail in detailscommandes" :key="detail.id">
+          <div class="details-row">
+            <a>
+              {{ detail.leProduit.libelle }} - 
+              <span>{{ (detail.quantite * detail.leProduit.prix).toFixed(2) }}€</span>
+            </a>
+            <div class="panier-button">
+              <div class="panier-absolute">
+                <button @click="decrementProduit(detail.leProduit.id)">
+                  <i class="fa-solid fa-minus"></i>
+                </button>
+                <a>{{ detail.quantite }}</a>
+                <button @click="incrementProduit(detail.leProduit.id)">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="btnPanier">
+          <button class="suppPanier" v-if="detailscommandes.length" @click="clearPanier">
+            Vider
+          </button>
+          <button class="validerPanier" v-if="detailscommandes.length">
+            <a href="/client/panier">Commander</a>
+          </button>
+          <button class="validerPanier" v-if="detailscommandes.length">
+            <a href="/api/commandes/parcours/{id}">Chemin</a>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="products">
+      <div class="products-container">
+        <div class="card" v-for="produit in produits" :key="produit.id" style="width: 18rem;">
+          <img class="card-img-top" :src="'/uploads/images/' + produit.image" alt="Image du produit" />
+          <div class="card-body">
+            <h5 class="card-title">{{ produit.libelle }}</h5>
+            <div class="card-line">
+              <p class="card-link-prix">{{ produit.prix }} €</p>
+              <button id="addBtn" @click="incrementProduit(produit.id)">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+            <p class="card-text">{{ produit.description }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
