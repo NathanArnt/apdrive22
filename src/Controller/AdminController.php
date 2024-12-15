@@ -10,6 +10,8 @@ use App\Form\CategoriesType;
 use App\Repository\CommandesRepository;
 use App\Repository\ProduitsRepository;
 use App\Repository\StatutRepository;
+use App\Form\ProduitsType;
+use App\Entity\Produits;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -32,7 +34,22 @@ class AdminController extends AbstractController
             'controller_name' => 'AdminController',
         ]);
     }
+    #[Route('/admin/produits', name: 'app_admin_produits')]
+    public function getProduits(): Response
+    {
 
+        return $this->render('admin/produits.html.twig', [
+            'controller_name' => 'AdminController',
+        ]);
+    }
+    #[Route('/admin/commandes', name: 'app_admin_commandes')]
+    public function getCommandes(): Response
+    {
+
+        return $this->render('admin/commandes.html.twig', [
+            'controller_name' => 'AdminController',
+        ]);
+    }
     #[Route('/admin/ajouterproduits', name: 'app_admin_ajouter_produits')]
     public function ajouterProduits(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
@@ -84,7 +101,6 @@ class AdminController extends AbstractController
             'produitsForm' => $form->createView(),
         ]);
     }
-
     #[Route('/admin/ajoutercategories', name: 'app_admin_ajouter_categories')]
     public function ajouterCategorie(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -172,8 +188,4 @@ class AdminController extends AbstractController
         // Rediriger vers la liste des commandes
         return $this->redirectToRoute('app_admin_afficher_commandes');
     }
-
-
-
-
 }

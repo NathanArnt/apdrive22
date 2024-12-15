@@ -20,15 +20,89 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class ApiController extends AbstractController
 {
+    #[Route('/api/check-auth', name: 'check_auth')]
+public function checkAuth(SessionInterface $session): Response
+{
+    $user = $session->get('user');
+    return $this->json([
+        'isAuthenticated' => $user !== null,
+    ]); 
+}
+    #[Route('api/commandes/create', name: 'api_commandes_create', methods: ['POST'])]
+    public function createCommande(Security $security ,EntityManagerInterface $entityManager, StatutRepository $statutRepository, CommandesRepository $commandesRepository): JsonResponse {
+        $user = $security->getUser();
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+        $commande = $commandesRepository->findOneBy(['leUser' => $user]) ?? new Commandes();
+        if (!$commande->getId()) {
+            $commande->setLeUser($user);
+            $commande->setLeStatut($statutRepository->find(1)); // Statut "En cours"
+            $entityManager->persist($commande);
+        }
+        $entityManager->flush();
+        return $this->json(['message' => 'Commande créé']);
+    }
+    #[Route('/api/loginn', name: 'api_loginn', methods: ['POST'])]
+    public function login(
+        Request $request,
+        SessionInterface $session,
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher
+        
+        ): Response {
+        // Récupérer les données JSON de la requête
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['email'], $data['password'])) {
+            return $this->json(['access' => 'refusé', 'message' => 'Paramètres manquants'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $email = $data['email'];
+        $password = $data['password'];
+
+        // Récupérer l'utilisateur via l'email
+        $user = $userRepository->findOneBy(['email' => $email]);
+        if (!$user) {
+            return $this->json(['access' => 'refusé', 'message' => 'Utilisateur non trouvé'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Vérifier le mot de passe
+        if (!$passwordHasher->isPasswordValid($user, $password)) {
+            return $this->json(['access' => 'refusé', 'message' => 'Mot de passe incorrect'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Connexion réussie
+        $session->set('user', $user->getId());
+        
+        return $this->json(['access' => 'autorisé', 'message' => $session->get('user')], Response::HTTP_OK);
+    }
+
     #[Route('api/produits', name: 'app_api_produits')]
     public function getProducts(Request $request,ProduitsRepository $produitsRepository)
     {
+        
         $response =new Utils();
         $produits = $produitsRepository->findAll();
         return $response->GetJsonResponse($request,$produits);
+    }
+    #[Route('api/commandes', name: 'app_api_commandes',  methods: ['GET'])]
+    public function getCommandes(Request $request, UserRepository $userRepository ,CommandesRepository $commandesRepository, SessionInterface $session, Utils $utils) 
+    {
+       // Récupérer l'utilisateur actuellement connecté
+       $user = $session->get('user');
+       if (!$user) {
+           return $utils->ErrorCustom('Utilisateur non connecté.');
+       }
+        $response = new Utils();
+        $commandes = $commandesRepository->findBy(['leUser' => $user],['leStatut' => 'en_cours']);
+        return $response->GetJsonResponse($request,$commandes);
     }
     #[Route('api/detailscommandes', name: 'app_api_details_commandes')]
     public function getDetailsCommandes(Request $request,DetailsCommandesRepository $detailsCommandesRepository)
@@ -86,7 +160,7 @@ class ApiController extends AbstractController
         if (!$user) {
             return $this->json(['error' => 'Unauthorized'], JsonResponse::HTTP_UNAUTHORIZED);
         }
-
+        
         $content = json_decode($request->getContent(), true);
         $produitId = $content['produit_id'] ?? null;
         if (!$produitId) {
@@ -212,7 +286,7 @@ public function validerCommande(
         'message' => 'Commande validée avec succès',
         'nouvelleCommandeId' => $nouvelleCommande->getId(),
     ]);
-}
+} 
 
 #[Route('/api/commandes/parcours/{id}', name: 'app_api_parcours_commande', methods: ['GET','POST'])]
 function trouverCheminPlusCourt($id, CommandesRepository $commandesRepository): Response {
@@ -273,6 +347,4 @@ foreach ($commande->getLesDetailsCommandes() as $detailCommande) {
 function calculerDistance($point1, $point2) {
     return round(sqrt(pow($point2['x'] - $point1['x'], 2) + pow($point2['y'] - $point1['y'], 2)),2);
 }
-
-
 }

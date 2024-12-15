@@ -22,10 +22,7 @@ class Produits
     private ?float $prix = null;
 
     #[ORM\Column]
-    private ?int $quantite = null;
-
-    #[ORM\OneToOne(inversedBy: 'LeProduit', cascade: ['persist', 'remove'])]
-    private ?Stock $leStock = null;
+    private ?int $stock = null;
 
     #[ORM\OneToOne(inversedBy: 'LeProduit', cascade: ['persist', 'remove'])]
     private ?Emplacements $leEmplacement = null;
@@ -76,26 +73,14 @@ class Produits
         return $this;
     }
 
-    public function getQuantite(): ?int
+    public function getStock(): ?int
     {
-        return $this->quantite;
+        return $this->stock;
     }
 
-    public function setQuantite(int $quantite): static
+    public function setStock(int $stock): static
     {
-        $this->quantite = $quantite;
-
-        return $this;
-    }
-
-    public function getLeStock(): ?Stock
-    {
-        return $this->leStock;
-    }
-
-    public function setLeStock(?Stock $leStock): static
-    {
-        $this->leStock = $leStock;
+        $this->stock = $stock;
 
         return $this;
     }
