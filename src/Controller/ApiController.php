@@ -31,9 +31,24 @@ public function checkAuth(SessionInterface $session): Response
     $user = $session->get('user');
     return $this->json([
         'isAuthenticated' => $user !== null,
-    ]);
+    ]); 
 }
-    #[Route('/api/login', name: 'api_login', methods: ['POST'])]
+    #[Route('api/commandes/create', name: 'api_commandes_create', methods: ['POST'])]
+    public function createCommande(Security $security ,EntityManagerInterface $entityManager, StatutRepository $statutRepository, CommandesRepository $commandesRepository): JsonResponse {
+        $user = $security->getUser();
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+        $commande = $commandesRepository->findOneBy(['leUser' => $user]) ?? new Commandes();
+        if (!$commande->getId()) {
+            $commande->setLeUser($user);
+            $commande->setLeStatut($statutRepository->find(1)); // Statut "En cours"
+            $entityManager->persist($commande);
+        }
+        $entityManager->flush();
+        return $this->json(['message' => 'Commande créé']);
+    }
+    #[Route('/api/loginn', name: 'api_loginn', methods: ['POST'])]
     public function login(
         Request $request,
         SessionInterface $session,
