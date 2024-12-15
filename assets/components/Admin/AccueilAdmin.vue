@@ -53,7 +53,7 @@ export default {
 .dashboard h1 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #34495e;
+  color: #ee0653;
 }
 
 .welcome-text {

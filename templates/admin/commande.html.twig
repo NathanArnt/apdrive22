@@ -10,19 +10,19 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Utilisateur</th>
+                <th>Client</th>
                 <th>Statut</th>
                 <th>Étapes</th>
                 <th>Total</th>
                 <th>Produits</th>
-                <th>  </th>
+                <th> </th>
             </tr>
         </thead>
         <tbody>
             {% for commande in commandes %}
                 <tr>
                     <td>{{ commande.id }}</td>
-                    <td>{{ commande.leUser ? commande.leUser.nom : 'Non défini' }}</td>
+                    <td>{{ commande.leUser ? commande.leUser.email : 'Non défini' }}</td>
                     <td>{{ commande.leStatut ? commande.leStatut.libelle : 'Non défini' }}</td>
                     <td> <a href="{{ path('app_api_parcours_commande', {'id': commande.id}) }}">Chemin</a></td>
                     <td>{{ commande.calculerTotal()|number_format(2, '.', ' ') }} €</td>

@@ -4,7 +4,7 @@
         <li><a href="/admin"><i class="fas fa-home"></i> Accueil</a></li>
         <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="/admin/produits"><i class="fas fa-box"></i> Produits</a></li>
-        <li><a href="/admin/commandes"><i class="fas fa-box"></i> Commandes</a></li>
+        <li><a href="/admin/commande"><i class="fas fa-box"></i> Commandes</a></li>
         <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
         <!-- Ajoutez d'autres éléments de navigation ici -->
       </ul>
@@ -19,7 +19,8 @@
   
   <style scoped>
   .navbar {
-    background-color: #2c3e50;
+    border-radius: 5px;
+    background-color: #ee0653;
     padding: 0.5rem 2rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
@@ -49,7 +50,7 @@
   }
   
   .navbar a:hover {
-    color: #1abc9c;
+    color: white;
     transform: scale(1.05);
   }
   </style>

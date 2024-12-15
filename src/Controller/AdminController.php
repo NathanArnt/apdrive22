@@ -4,8 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Categories;
 use App\Entity\Commandes;
-use App\Form\ProduitsType;
-use App\Entity\Produits;
 use App\Form\CategoriesType;
 use App\Repository\CommandesRepository;
 use App\Repository\ProduitsRepository;
@@ -145,8 +143,8 @@ class AdminController extends AbstractController
         // Sélectionner uniquement les commandes avec un statut "En attente"
         $commandes = $commandesRepository->createQueryBuilder('c')
             ->leftJoin('c.leStatut', 's')  // Jointure avec la table des statuts
-            ->where('s.libelle = :enAttente')  // Filtrer les statuts "En attente"
-            ->setParameter('enAttente', 'En attente')
+            ->where('s.libelle = :valide')  // Filtrer les statuts "En attente"
+            ->setParameter('valide', 'valide')
             ->getQuery()
             ->getResult();
 
@@ -172,7 +170,7 @@ class AdminController extends AbstractController
         }
 
         // Récupérer le statut correspondant à "Terminée"
-        $statutTermine = $statutRepository->findOneBy(['libelle' => 'Terminée']);
+        $statutTermine = $statutRepository->findOneBy(['libelle' => 'termine']);
 
         if (!$statutTermine) {
             throw $this->createNotFoundException('Le statut "Terminée" est introuvable.');
