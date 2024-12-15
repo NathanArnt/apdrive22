@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Commandes{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Liste des Commandes</h1>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Utilisateur</th>
+                <th>Statut</th>
+                <th>Étapes</th>
+                <th>Total</th>
+                <th>Produits</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for commande in commandes %}
+                <tr>
+                    <td>{{ commande.id }}</td>
+                    <td>{{ commande.leUser ? commande.leUser.nom : 'Non défini' }}</td>
+                    <td>{{ commande.leStatut ? commande.leStatut.nom : 'Non défini' }}</td>
+                    <td> <a href="{{ path('app_api_parcours_commande', {'id': commande.id}) }}">Chemin</a></td>
+                    <td>{{ commande.calculerTotal()|number_format(2, '.', ' ') }} €</td>
+                    <td>
+                        {% for detail in commande.lesDetailsCommandes %}
+                            <div>
+                                {{ detail.leProduit.libelle }} ({{ detail.quantite }}) - {{ detail.leProduit.prix|number_format(2, '.', ' ') }} €
+                            </div>
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+    <style scooped>
+
+        .container {
+            width: 80%;
+            margin: 2rem auto;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #ee0653;
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 20px 0;
+            font-family: 'Arial', sans-serif;
+            font-size: 1rem;
+            background: #f4f7f8;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: #ee0653;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-bottom: 2px solid #ddd;
+        }
+
+        tbody tr {
+            background: #fff;
+            transition: all 0.2s ease-in-out;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background:rgb(255, 237, 237);
+            transform: scale(1.01);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+            color: #333;
+        }
+
+        td:last-child {
+            text-align: center;
+        }
+
+    </style>
+
+{% endblock %}

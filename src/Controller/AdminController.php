@@ -6,6 +6,7 @@ use App\Entity\Categories;
 use App\Form\ProduitsType;
 use App\Entity\Produits;
 use App\Form\CategoriesType;
+use App\Repository\CommandesRepository;
 use App\Repository\ProduitsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -119,4 +120,15 @@ class AdminController extends AbstractController
             'categoriesForm' => $form->createView(),
         ]);
     }
+
+    #[Route("/admin/commande",name:"app_admin_afficher_commandes")]
+    public function getAllCommande(CommandesRepository $commandesRepository):Response
+    {
+        $commande = $commandesRepository->findAll();
+        
+        return $this->render('admin/commande.html.twig', [
+            "commandes"=>$commande
+        ]);
+    }
+
 }

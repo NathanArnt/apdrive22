@@ -274,5 +274,5 @@ function calculerDistance($point1, $point2) {
     return round(sqrt(pow($point2['x'] - $point1['x'], 2) + pow($point2['y'] - $point1['y'], 2)),2);
 }
 
-  
+
 }
