@@ -3,11 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Categories;
+use App\Entity\Commandes;
 use App\Form\ProduitsType;
 use App\Entity\Produits;
 use App\Form\CategoriesType;
 use App\Repository\CommandesRepository;
 use App\Repository\ProduitsRepository;
+use App\Repository\StatutRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -121,14 +123,57 @@ class AdminController extends AbstractController
         ]);
     }
 
-    #[Route("/admin/commande",name:"app_admin_afficher_commandes")]
-    public function getAllCommande(CommandesRepository $commandesRepository):Response
+    #[Route("/admin/commande", name: "app_admin_afficher_commandes")]
+    public function getAllCommande(CommandesRepository $commandesRepository): Response
     {
-        $commande = $commandesRepository->findAll();
-        
+        // Sélectionner uniquement les commandes avec un statut "En attente"
+        $commandes = $commandesRepository->createQueryBuilder('c')
+            ->leftJoin('c.leStatut', 's')  // Jointure avec la table des statuts
+            ->where('s.libelle = :enAttente')  // Filtrer les statuts "En attente"
+            ->setParameter('enAttente', 'En attente')
+            ->getQuery()
+            ->getResult();
+
         return $this->render('admin/commande.html.twig', [
-            "commandes"=>$commande
+            'commandes' => $commandes,
         ]);
     }
+
+
+
+    #[Route("/admin/commande/valider/{id}", name: "app_admin_commande_valider", methods: ["GET", "POST"])]
+    public function validerCommande(
+        int $id,
+        CommandesRepository $commandesRepository,
+        StatutRepository $statutRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Trouver la commande par son ID
+        $commande = $commandesRepository->find($id);
+
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande introuvable.');
+        }
+
+        // Récupérer le statut correspondant à "Terminée"
+        $statutTermine = $statutRepository->findOneBy(['libelle' => 'Terminée']);
+
+        if (!$statutTermine) {
+            throw $this->createNotFoundException('Le statut "Terminée" est introuvable.');
+        }
+
+        // Mettre à jour le statut de la commande
+        $commande->setLeStatut($statutTermine);
+        $entityManager->flush();
+
+        // Ajouter un message flash de confirmation
+        $this->addFlash('success', 'La commande a été validée avec succès.');
+
+        // Rediriger vers la liste des commandes
+        return $this->redirectToRoute('app_admin_afficher_commandes');
+    }
+
+
+
 
 }

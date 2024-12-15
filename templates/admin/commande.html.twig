@@ -15,6 +15,7 @@
                 <th>Étapes</th>
                 <th>Total</th>
                 <th>Produits</th>
+                <th>  </th>
             </tr>
         </thead>
         <tbody>
@@ -22,7 +23,7 @@
                 <tr>
                     <td>{{ commande.id }}</td>
                     <td>{{ commande.leUser ? commande.leUser.nom : 'Non défini' }}</td>
-                    <td>{{ commande.leStatut ? commande.leStatut.nom : 'Non défini' }}</td>
+                    <td>{{ commande.leStatut ? commande.leStatut.libelle : 'Non défini' }}</td>
                     <td> <a href="{{ path('app_api_parcours_commande', {'id': commande.id}) }}">Chemin</a></td>
                     <td>{{ commande.calculerTotal()|number_format(2, '.', ' ') }} €</td>
                     <td>
@@ -32,6 +33,14 @@
                             </div>
                         {% endfor %}
                     </td>
+                    <td>
+                        <a href="{{ path('app_admin_commande_valider', {'id': commande.id}) }}" class="btn btn-success">Valider</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3">Aucune commande en attente.</td>
+                </tr>
                 </tr>
             {% endfor %}
         </tbody>
@@ -48,7 +57,7 @@
             border-radius: 8px;
             padding: 1.5rem;
         }
-        
+
         h1 {
             text-align: center;
             color: #ee0653;
@@ -107,6 +116,42 @@
         td:last-child {
             text-align: center;
         }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 4px 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .bg-success {
+            background-color: #28a745;
+            color: #fff;
+        }
+
 
     </style>
 
